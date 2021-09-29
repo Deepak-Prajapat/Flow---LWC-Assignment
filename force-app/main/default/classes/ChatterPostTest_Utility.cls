@@ -11,6 +11,11 @@ public with sharing class ChatterPostTest_Utility {
     Public static String testUser1 = getTestUser1();
     Public static String testUser2 = getTestUser2();
 
+    /**
+    * @description create an account record for testing
+    * @author Deepak Prajapati (d.prajapati@concret.io) | 29-09-2021 
+    * @return String -> account id
+    **/
     public static String getTestAccount() {
         Account acc = new Account();
         acc.Name = 'For Testing';
@@ -19,6 +24,11 @@ public with sharing class ChatterPostTest_Utility {
     }
 
 
+    /**
+    * @description : Create a Test User
+    * @author Deepak Prajapati (d.prajapati@concret.io) | 29-09-2021 
+    * @return String user's Id
+    **/
     public static String getTestUser1() {
         Profile p = [select id, name from Profile where name = 'Standard User' LIMIT 1];
         System.debug('profile ' + p);
@@ -38,7 +48,12 @@ public with sharing class ChatterPostTest_Utility {
             insert follower;  // insert the user record
             return follower.Id;
         }
-    
+
+    /**
+    * @description : Create another Test User
+    * @author Deepak Prajapati (d.prajapati@concret.io) | 29-09-2021 
+    * @return String user's Id
+    **/
     public static String getTestUser2() {
         Profile p = [select id, name from Profile where name = 'Standard User' LIMIT 1];
         System.debug('profile ' + p);
@@ -57,6 +72,10 @@ public with sharing class ChatterPostTest_Utility {
             insert follower2;  
             return follower2.id;
     }
+    /**
+    * @description Add user to account record's ffollower list
+    * @author Deepak Prajapati (d.prajapati@concret.io) | 29-09-2021 
+    **/
     public static void makeFollowers() {
         /* Make User as a follower of acc */
         EntitySubscription es = new EntitySubscription();
