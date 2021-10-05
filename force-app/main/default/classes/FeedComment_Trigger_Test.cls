@@ -2,28 +2,28 @@
  * @description       : 
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
  * @group             : 
- * @last modified on  : 29-09-2021
+ * @last modified on  : 05-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
-**/
+************************************************************/
 @isTest(seeAllData = true)
 public with sharing class FeedComment_Trigger_Test {
+
+    Public static Final String COMMUNITY_ID = null;
+
     @isTest
      static void FeedComment_Trigger_Test() {
+         /* Create Required Data and Assign followers */
         ChatterPostTest_Utility.makeFollowers();
-        FeedItem feedPost = new FeedItem();
-        feedPost.body = '<p><b>FeedItem</b></p>';
-        feedPost.createdById = ChatterPostTest_Utility.testUser1;
-        feedPost.ParentId = ChatterPostTest_Utility.testAccountId;
-        feedPost.isRichText = true;
-        try {
-            insert feedPost;
-        } catch (Exception e) {
-            System.debug(e);
-        }
 
-        String communityId = null;
-        String feedElementId = feedPost.Id;
-        System.debug(feedPost.id);
+        Account tempAcc = [select id from account where name = 'For Testing1' limit 1];
+
+        FeedItem feed = new FeedItem (
+            parentid = tempAcc.id,
+            type = 'ContentPost',
+            Body = 'Sample Feed Body'
+        );  
+        insert feed;
+
         ConnectApi.CommentInput commentInput = new ConnectApi.CommentInput();
         ConnectApi.MentionSegmentInput mentionSegmentInput = new ConnectApi.MentionSegmentInput();
         ConnectApi.MessageBodyInput messageBodyInput = new ConnectApi.MessageBodyInput();
@@ -31,26 +31,19 @@ public with sharing class FeedComment_Trigger_Test {
 
         messageBodyInput.messageSegments = new List<ConnectApi.MessageSegmentInput>();
 
-        textSegmentInput.text = 'Does anyone in this group have an idea? ';
+        textSegmentInput.text = 'Sample Text ? ';
         messageBodyInput.messageSegments.add(textSegmentInput);
 
         mentionSegmentInput.id = ChatterPostTest_Utility.testUser1;
         messageBodyInput.messageSegments.add(mentionSegmentInput);
+
         commentInput.body = messageBodyInput;
+
         Test.startTest();
-        try {
-            ConnectApi.Comment commentRep = ConnectApi.ChatterFeeds.postCommentToFeedElement(communityId, feedPost.Id, commentInput, null);
-        } catch (Exception w) {
-            System.debug(w);
-        }
-        Test.stopTest();
+            ConnectApi.Comment commentRep = ConnectApi.ChatterFeeds.postCommentToFeedElement(COMMUNITY_ID, feed.Id, commentInput, null);    
+        Test.stopTest();      
 
-        /* A @TestVisible-> testemails variable to assertion */
-        List<String> mail = FeedComment_TriggerHelper.testemails;
-
-        /* Assertions */
-        System.assert(!mail.contains('test@samp.com'));
-        System.assert(mail.contains('test@samp2.com'));
-        System.assertEquals(1,mail.size());
+        System.assert(!FeedComment_TriggerHandler.testemails.contains('test@samp.com'));
+        System.assert(FeedComment_TriggerHandler.testemails.contains('test@samp2.com'));
     }
 }

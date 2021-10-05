@@ -2,25 +2,35 @@
  * @description       : 
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
  * @group             : 
- * @last modified on  : 29-09-2021
+ * @last modified on  : 05-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **/
 @isTest
 public with sharing class ChatterPostTest_Utility {
-    Public static String testAccountId = getTestAccount();
-    Public static String testUser1 = getTestUser1();
-    Public static String testUser2 = getTestUser2();
 
+    Public static String acccId;
+    Public static String testUser1;
+    Public static String testUser2;
+    Public static String acccId2;
     /**
     * @description create an account record for testing
     * @author Deepak Prajapati (d.prajapati@concret.io) | 29-09-2021 
     * @return String -> account id
-    **/
-    public static String getTestAccount() {
-        Account acc = new Account();
-        acc.Name = 'For Testing';
-        insert acc;
-        return acc.id;
+    *************************************************/
+    public static Id getTestAccount(Integer count) {
+         Id accountId;
+        if (count == 1) {
+            Account acc = new Account();
+            acc.Name = 'For Testing1';
+            insert acc;
+            accountId = acc.id;
+        }else if (count == 2) {
+            Account acc2 = new Account();
+            acc2.Name = 'For Testing2';
+            insert acc2;
+            accountId = acc2.id;
+        }
+      return accountId;
     }
 
 
@@ -31,23 +41,22 @@ public with sharing class ChatterPostTest_Utility {
     **/
     public static String getTestUser1() {
         Profile p = [select id, name from Profile where name = 'Standard User' LIMIT 1];
-        System.debug('profile ' + p);
 
-        /* Create 2 User */
-            User follower = new User();
-            follower.Username = 'test7890@samp.com';
-            follower.LastName = 'lastName';
-            follower.Email = 'test@samp.com';
-            follower.Alias = 'tsamp';
-            follower.ProfileId = p.Id;
-            follower.IsActive = true;  // here we are creating inactive user account
-            follower.TimeZoneSidKey = 'America/Los_Angeles'; 
-            follower.LocaleSidKey = 'en_US';
-            follower.LanguageLocaleKey = 'en_US';
-            follower.EmailEncodingKey = 'ISO-8859-1'; 
-            insert follower;  // insert the user record
-            return follower.Id;
-        }
+    /* Create 2 User */
+        User follower = new User();
+        follower.Username = 'test78909@samp.com';
+        follower.LastName = 'lastName';
+        follower.Email = 'test@samp.com';
+        follower.Alias = 'tsamp';
+        follower.ProfileId = p.Id;
+        follower.IsActive = true;  // here we are creating inactive user account
+        follower.TimeZoneSidKey = 'America/Los_Angeles'; 
+        follower.LocaleSidKey = 'en_US';
+        follower.LanguageLocaleKey = 'en_US';
+        follower.EmailEncodingKey = 'ISO-8859-1'; 
+        insert follower;  // insert the user record
+        return follower.Id;
+    }
 
     /**
     * @description : Create another Test User
@@ -56,7 +65,6 @@ public with sharing class ChatterPostTest_Utility {
     **/
     public static String getTestUser2() {
         Profile p = [select id, name from Profile where name = 'Standard User' LIMIT 1];
-        System.debug('profile ' + p);
         User follower2 = new User();
             follower2.Username = 'test7890@samp2.com';
             follower2.LastName = 'lastName';
@@ -75,18 +83,29 @@ public with sharing class ChatterPostTest_Utility {
     /**
     * @description Add user to account record's ffollower list
     * @author Deepak Prajapati (d.prajapati@concret.io) | 29-09-2021 
-    **/
+    **************************************/
     public static void makeFollowers() {
         /* Make User as a follower of acc */
         EntitySubscription es = new EntitySubscription();
-        es.ParentId = testAccountId;
-        es.SubscriberId = testUser1;
+        es.ParentId = getTestAccount(1);
+        es.SubscriberId = getTestUser1();
+        testUser1 = es.SubscriberId;
+        acccId = es.ParentId;
         insert es;
-        
+        acccId = es.Id;
         /* Make User2 as a follower of acc */
+
         EntitySubscription es2 = new EntitySubscription();
-        es2.ParentId = testAccountId;
-        es2.SubscriberId = testUser2;
+        es2.ParentId = es.ParentId;
+        es2.SubscriberId = getTestUser2();
+        testUser2 = es2.SubscriberId;
         insert es2;
+
+        EntitySubscription es3 = new EntitySubscription();
+        es3.ParentId = getTestAccount(2);
+        acccId2 = es3.ParentId;
+        es3.SubscriberId = testUser2;
+        insert es3;
     }
+
 }

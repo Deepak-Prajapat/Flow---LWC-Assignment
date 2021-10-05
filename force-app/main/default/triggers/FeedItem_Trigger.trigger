@@ -2,15 +2,15 @@
  * @description       : 
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
  * @group             : 
- * @last modified on  : 29-09-2021
+ * @last modified on  : 04-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 ******************    *************/
 trigger FeedItem_Trigger on FeedItem (after insert, after update) {
     if (Trigger.isAfter) {
         if (Trigger.isInsert) {
-            FeedItem_TriggerHelper.FeedItem_TriggerHelperAfterInsert(Trigger.New , 'INSERT');
+            FeedItem_TriggerHandler.FeedItem_Trigger(Trigger.New , 'INSERT');
         }else if (Trigger.isUpdate) {
-            FeedItem_TriggerHelper.FeedItem_TriggerHelperAfterInsert(Trigger.New, 'UPDATE');
+            FeedItem_TriggerHandler.FeedItem_Trigger(Trigger.New , 'UPDATE');
         }
     }
 }
