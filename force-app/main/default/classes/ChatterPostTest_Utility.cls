@@ -8,10 +8,10 @@
 @isTest
 public with sharing class ChatterPostTest_Utility {
 
-    Public static String acccId;
-    Public static String testUser1;
-    Public static String testUser2;
-    Public static String acccId2;
+    public static String acccId;
+    public static String testUser1;
+    public static String testUser2;
+    public static String acccId2;
     /**
     * @description create an account record for testing
     * @author Deepak Prajapati (d.prajapati@concret.io) | 29-09-2021 

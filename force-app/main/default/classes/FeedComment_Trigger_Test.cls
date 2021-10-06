@@ -8,7 +8,7 @@
 @isTest(seeAllData = true)
 public with sharing class FeedComment_Trigger_Test {
 
-    Public static Final String COMMUNITY_ID = null;
+    public static Final String COMMUNITY_ID = null;
 
     @isTest
      static void FeedComment_Trigger_Test() {

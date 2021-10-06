@@ -1,7 +1,7 @@
 /**********************************************************************************************
  * @description       : 
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
- * @last modified on  : 05-10-2021
+ * @last modified on  : 06-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 ************************************************************************************************/
 public with sharing class FeedItem_TriggerHandler {
@@ -11,54 +11,38 @@ public with sharing class FeedItem_TriggerHandler {
     /* For Testing Purpose */
     @TestVisible public static Map<Integer, List<String>> testEmails = new Map<Integer,List<String>>();
 
-    /****************
+    /**
     * @description Method for sending email to Account Followers
     * @author Deepak Prajapati (d.prajapati@concret.io) | 28-09-2021 
     * @param List<FeedItem> feedItemList --> Trigger.New  
     * @param String operationType  --> Either Insert or Update
-    **************************************************************/
-    public static void FeedItem_Trigger(List<FeedItem> feedItemList, String operationType) {
-
-        /* A Helper For Testing */
-        Integer count = 0;
-
-        /* Get all users */
-        Map<Id, User> usersMap = new Map<Id, User>([SELECT 
-                                                        Id, 
-                                                        FirstName, 
-                                                        LastName,
-                                                        Email 
-                                                    FROM User 
-                                                    LIMIT 999]);
+    **/
+    public static void notifyFollowers(List<FeedItem> feedItemList) {
         
+        Integer count = 0;// IGNOR :-> A Helper For Testing
 
         /* Store Parent AccountIds and Feed Ids */
         Set<Id> parentIds = new Set<Id>();
         Set<Id> idsFeedItem = new Set<Id>();
+        Set<Id> userIds = new Set<Id>(); //This includes user Ids for createdBy field
 
         for (FeedItem fi : feedItemList) {
             parentIds.add(fi.ParentId);
             idsFeedItem.add(fi.id);
+            userIds.add(fi.CreatedById);
         }
-        
-        /* All FeedItems to Filter Feed Type */
-            Map<Id, FeedItem> feedItemsMap = new Map<Id, FeedItem>([SELECT 
-                                                                        Id, 
-                                                                        type 
-                                                                    FROM FeedItem 
-                                                                    WHERE id IN: idsFeedItem]);
-
-        
-        Map<Id, Account> feedParentAccounts = new Map<Id, Account> ([  SELECT 
-                                                                            Name,
-                                                                            Id,
-                                                                            CreatedBy.FirstName,
-                                                                            CreatedBy.LastName 
-                                                                        FROM Account 
-                                                                        WHERE id IN :parentIds]);
 
         /* UserMap with email */
         Map<Id, ChatterPost_Utility.FollowersWrapper> followersMap = ChatterPost_Utility.getFollowersByAccount(parentIds);
+
+        /* Get all users */
+        Map<Id, User> usersMap = new Map<Id, User>( ChatterPost_SOQL.getUsers(userIds) );
+        
+        /* All FeedItems to Filter Feed Type */
+        Map<Id, FeedItem> feedItemsMap = new Map<Id, FeedItem>( ChatterPost_SOQL.getFeedItems(idsFeedItem) );
+
+        /* Parent Accounts Details */
+        Map<Id, Account> feedParentAccounts = new Map<Id, Account> ( ChatterPost_SOQL.getAccounts(parentIds) );
         
         /* Send Emails to the followers */
         for (FeedItem feed : feedItemList) {
@@ -68,13 +52,13 @@ public with sharing class FeedItem_TriggerHandler {
             ) {
                 String senderName = feedParentAccounts.get(feed.ParentId).CreatedBy.firstName + ' ' + feedParentAccounts.get(feed.ParentId).CreatedBy.LastName;
 
-                /* Getting List of mentioned users */
-                List<ID> idsOfMentionedUsers = ChatterPost_Utility.postMentionedUsers(feed.Id);
+                List<ID> idsOfMentionedUsers = ChatterPost_Utility.postMentionedUsers(feed.Id); // Getting List of mentioned users
                 
                 /* Followers Emails */
                 Set<String> emails = new Set<String>();
                 if (!followersMap.get(feed.ParentId).emails.isEmpty()) {
                     emails = new Set<String> (followersMap.get(feed.parentId).emails);
+                    
                     /* Remove Mentioned Users */
                     for (Id mentionedId : idsOfMentionedUsers) {
                         emails.remove(usersMap.get(mentionedId).Email);
@@ -84,10 +68,10 @@ public with sharing class FeedItem_TriggerHandler {
                     /* Format Mail Based On Opeation */
                     String insertOrUpdate;
                     String insertOrUpdateBody;
-                    if (operationType == 'INSERT') {
+                    if (Trigger.isInsert) {
                         InsertOrUpdate = ' Added A Feed On ';
                         insertOrUpdateBody = ' There is a new post of account ';
-                    }else {
+                    }else if(Trigger.isUpdate) {
                         insertOrUpdate = ' Updated A Feed On';
                         insertOrUpdateBody = ' An Existing post is updated on ';
                     }
@@ -99,13 +83,11 @@ public with sharing class FeedItem_TriggerHandler {
                                         '</p>';  
                     
                     List<String> emailsToSend = new List<String>(emails);
-
-                    /* Ignor: Testing Identifires */
-                    testEmails.put(count, emailsToSend);
+                    testEmails.put(count, emailsToSend); // IGNORE: Testing Identifire
                     count++;
 
-                    /* Send mail */
-                    EmailService.sendEmails(senderName, emailsToSend, subject, bodyText);    
+                    /* Send mail to followers */
+                    EmailService.sendEmailToFollowers(senderName, emailsToSend, subject, bodyText);    
                 }
             }
         }

@@ -1,51 +1,38 @@
 /**                     **************                    ***
  * @description       : Helper class for FeedComment Trigger
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
- * @last modified on  : 05-10-2021
+ * @last modified on  : 06-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **************************************************************/
 public with sharing class FeedComment_TriggerHandler {
 
-    Public static final String ORG_URL = URL.getSalesforceBaseUrl().toExternalForm();
+    public static final String ORG_URL = URL.getSalesforceBaseUrl().toExternalForm();
     
     /* TEST VARIABLE */
     @TestVisible public static List<String> testEmails;
 
-    /****************
+    /**
     * @description Method for sending email to Account Followers
     * @author Deepak Prajapati (d.prajapati@concret.io) | 28-09-2021 
     * @param List<FeedItem> feedItemList --> Trigger.New  
     * @param String operationType  --> Either Insert or Update
-    ***************************************/
-    public static void FeedComment_Trigger(List<FeedComment> feedComments, String operationType) {
-
-        /* Get All Parent Account Ids  */
+    ****/
+    public static void notifyFollowers(List<FeedComment> feedComments) {
+        
         Set<Id> parentIds = new Set<Id>();
         Set<Id> parentFeeds = new Set<Id>();
+        Set<Id> userIds = new Set<Id>(); // userIds for createdBy field
         
         for(FeedComment comment : feedComments) {
-            if ( !parentIds.contains( comment.parentId ) ) {
-                parentIds.add(comment.ParentId);
-            }
+            parentIds.add(comment.ParentId);
             parentFeeds.add(comment.FeedItemId);
+            userIds.add(comment.CreatedById);
         }
+        Map<Id, Account> feedParentAccounts = new Map<Id, Account> ( ChatterPost_SOQL.getAccounts(parentIds) ); //Store Parent Accounts
 
-        Map<Id, Account> feedParentAccounts = new Map<Id, Account> ([  SELECT 
-                                                                            Name,
-                                                                            Id,
-                                                                            CreatedBy.FirstName,
-                                                                            CreatedBy.LastName 
-                                                                        FROM Account 
-                                                                        WHERE id IN :parentIds]);
+        Map<Id, FeedItem> feedItemsMap = new Map<Id, FeedItem>(ChatterPost_SOQL.getFeedItems(parentFeeds)); //Store FeedItems
 
-        Map<Id, FeedItem> feedItemsMap = new Map<Id, FeedItem>([SELECT 
-                                                                    Id, 
-                                                                    type 
-                                                                FROM FeedItem 
-                                                                WHERE id IN: parentFeeds]);
-
-        /* Get all users */
-        Map<Id, User> usersMap = new Map<Id, User>([SELECT Id, FirstName, LastName, Email FROM User]);
+        Map<Id, User> usersMap = new Map<Id, User>(ChatterPost_SOQL.getUsers(userIds)); //Store Users
 
         /* Get Followers by Account */
         Map<Id, ChatterPost_Utility.FollowersWrapper> followersMap = ChatterPost_Utility.getFollowersByAccount(parentIds);
@@ -64,8 +51,8 @@ public with sharing class FeedComment_TriggerHandler {
                 Set<String> emails = new Set<String>();
 
                 if (!followersMap.get(comment.ParentId).emails.isEmpty()) {
+                    emails = new Set<String> (followersMap.get(comment.parentId).emails);//Store follower emails  
 
-                    emails = new Set<String> (followersMap.get(comment.parentId).emails);  
                     /* Remove Mentioned User  */
                     for (Id mentionedId : idsOfMentionedUsers) {
                         emails.remove(usersMap.get(mentionedId).Email);
@@ -73,13 +60,12 @@ public with sharing class FeedComment_TriggerHandler {
                     
                     /* Email Formatting */
                     String subject = usersMap.get(comment.CreatedById).FirstName + ' ' + usersMap.get(comment.CreatedById).LastName + ' Commented on a post of account ' + feedParentAccounts.get(comment.ParentId).Name + ' '; 
-        
                     String senderName = feedParentAccounts.get(comment.ParentId).CreatedBy.firstName + ' ' + feedParentAccounts.get(comment.ParentId).CreatedBy.LastName;
 
                     String updateOrInsert = '';
-                    if (operationType == 'INSERT') {
+                    if (Trigger.isInsert) {
                         updateOrInsert = 'There is a new comment on a post of account';
-                    }else if (operationType == 'UPDATE'){
+                    }else if (Trigger.isUpdate){
                         updateOrInsert = 'A existing comments is updated on a post of account ';
                     }
 
@@ -89,8 +75,8 @@ public with sharing class FeedComment_TriggerHandler {
                                         '</p>' ;   
                     
                     List<String> emailsToSend = new List<String>(emails);
-                    testEmails = emailsToSend;
-                    EmailService.sendEmails(senderName, emailsToSend, subject, bodyText);  
+                    testEmails = emailsToSend; // IGNOR: Testing Identifire
+                    EmailService.sendEmailToFollowers(senderName, emailsToSend, subject, bodyText);  //Send email to followers
                 }
             }
         }

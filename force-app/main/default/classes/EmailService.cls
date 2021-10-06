@@ -1,7 +1,7 @@
 /**
  * @description       : A class that contains static methods related to email service
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
- * @last modified on  : 04-10-2021
+ * @last modified on  : 05-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **/
 public with sharing class EmailService {
@@ -12,7 +12,7 @@ public with sharing class EmailService {
     * @param String text  -> Either INSERT or UPDATE
     * @param FeedComment_TriggerHelper.PostCommentWrapper bodyText -> Wrapper that have post's body and comment's body 
     ****************************************************************/
-    public static void sendEmails(  String senderName, 
+    public static void sendEmailToFollowers(  String senderName, 
                                     List<String> emailIds,
                                     String subject, 
                                     String bodyText ){

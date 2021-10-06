@@ -1,7 +1,7 @@
 /**
  * @description       : An helper class for Chatter Post Assignment
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
- * @last modified on  : 05-10-2021
+ * @last modified on  : 06-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **************************/
 public with sharing class ChatterPost_Utility {
@@ -23,20 +23,30 @@ public with sharing class ChatterPost_Utility {
     public static Map<Id, FollowersWrapper> getFollowersByAccount(Set<Id> parentIds){
 
         Map<Id, FollowersWrapper> followersMap = new Map<Id, FollowersWrapper>();
-        Map<Id, User> userMap = new Map<Id, User>([SELECT Id, Email FROM User LIMIT 999]);
+        Set<Id> idsSubscriber = new Set<Id>();
 
         for (ID parentId : parentIds) {
             followersMap.put(parentId, new FollowersWrapper());
         }
     
-        List<EntitySubscription> followers = [  SELECT SubscriberId,ParentId,
-                                                       id 
+        List<EntitySubscription> followers = [  SELECT  SubscriberId,
+                                                        ParentId,
+                                                        id 
                                                 FROM EntitySubscription 
                                                 WHERE ParentId IN :parentIds LIMIT 999 ];
+        for (EntitySubscription follower : followers) {
+            idsSubscriber.add(follower.SubscriberId);
+        }
+        
+        /* All Subscribers */
+        Map<Id, User> subscribersMap = new Map<Id, User>([  SELECT  Id, 
+                                                                    Email 
+                                                            FROM User 
+                                                            WHERE Id IN :idsSubscriber]);
 
         for (EntitySubscription es : followers) {
             followersMap.get(es.ParentId).users.add(es.SubscriberId);
-            followersMap.get(es.ParentId).emails.add(userMap.get(es.SubscriberId).Email);
+            followersMap.get(es.ParentId).emails.add(subscribersMap.get(es.SubscriberId).Email);
         }
         return followersMap;
     }
@@ -52,7 +62,6 @@ public with sharing class ChatterPost_Utility {
                 idsOfMentionedUsers.add(mentionSegment.record.id);
             }
         }
-
         return idsOfMentionedUsers;
     }
 
@@ -66,7 +75,6 @@ public with sharing class ChatterPost_Utility {
                 idsOfMentionedUsers.add(mentionSegment.record.id);
             }
         }
-
         return idsOfMentionedUsers;
     }
 }
