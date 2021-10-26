@@ -5,7 +5,7 @@
       "default": true
     }
   ],
-  "name": "d_the__sher@concret.io",
+  "name": "ChatterEmailToFollowers",
   "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
   "sourceApiVersion": "52.0"

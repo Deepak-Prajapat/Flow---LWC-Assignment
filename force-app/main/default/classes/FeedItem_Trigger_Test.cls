@@ -2,49 +2,59 @@
  * @description       : 
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
  * @group             : 
- * @last modified on  : 29-09-2021
+ * @last modified on  : 05-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
-**/
+******************************************************/
 @isTest(seeAllData = true)
 public with sharing class FeedItem_Trigger_Test {
     @IsTest
     static void postInsertionandUpdationTest() {
-        
         /* Create Users and make them account's follower */
         ChatterPostTest_Utility.makefollowers();
+        Account tempAcc = [select id from account where name = 'For Testing1' limit 1];
+        Account tempAcc2 = [select id from account where name = 'For Testing2' limit 1];
 
-        /* Create a FeedItem for testing with mentioned user */
-        ConnectApi.FeedItemInput feedItemInput = new ConnectApi.FeedItemInput();
-        ConnectApi.MentionSegmentInput mentionSegmentInput = new ConnectApi.MentionSegmentInput();
-        ConnectApi.MessageBodyInput messageBodyInput = new ConnectApi.MessageBodyInput();
-        ConnectApi.TextSegmentInput textSegmentInput = new ConnectApi.TextSegmentInput();
+        List<ConnectApi.BatchInput> batchInputs = new List<ConnectApi.BatchInput>();
 
-        messageBodyInput.messageSegments = new List<ConnectApi.MessageSegmentInput>();
+        for (Integer i = 0; i < 5; i++) {
 
-        mentionSegmentInput.id = ChatterPostTest_Utility.testUser1;
-        messageBodyInput.messageSegments.add(mentionSegmentInput);
+            ConnectApi.FeedItemInput feedItemInput = new ConnectApi.FeedItemInput();
+            ConnectApi.MentionSegmentInput mentionSegmentInput = new ConnectApi.MentionSegmentInput();
+            ConnectApi.MessageBodyInput messageBodyInput = new ConnectApi.MessageBodyInput();
+            ConnectApi.TextSegmentInput textSegmentInput = new ConnectApi.TextSegmentInput();
 
-        textSegmentInput.text = 'Could you take a look?';
-        messageBodyInput.messageSegments.add(textSegmentInput);
+            messageBodyInput.messageSegments = new List<ConnectApi.MessageSegmentInput>();
 
-        feedItemInput.body = messageBodyInput;
-        feedItemInput.feedElementType = ConnectApi.FeedElementType.FeedItem;
-        feedItemInput.subjectId = ChatterPostTest_Utility.testAccountId;
-
-        // Testing For Insertion
-        Test.startTest();
-            /* Insert Chatter Post */
-            ConnectApi.FeedElement feedElement = ConnectApi.ChatterFeeds.postFeedElement(Network.getNetworkId(), feedItemInput);
+            /* To Test Bulk Changes */
+            if (i < 1) {
+                mentionSegmentInput.Id = ChatterPostTest_Utility.testUser2;
+            }else {
+                mentionSegmentInput.Id = ChatterPostTest_Utility.testUser1;
+            }
             
-            /* A @TestVisible-> testemails variable to assertion */
-            List<String> mail = FeedItem_TriggerHelper.oneEmail;
+            messageBodyInput.messageSegments.add(mentionSegmentInput);
 
-            /* Assertions */
-            System.assert(!mail.contains('test@samp.com'));
-            System.assert(mail.contains('test@samp2.com'));
-            System.assertEquals(1,mail.size());
+            textSegmentInput.text = 'My laptop is not working, Could you take a look?' + i ;
+            messageBodyInput.messageSegments.add(textSegmentInput);
 
-        Test.stopTest();
-        
+            feedItemInput.body = messageBodyInput;
+            
+            if (i < 1) {
+                feedItemInput.subjectId = tempAcc.id;
+            }else {
+                feedItemInput.subjectId = tempAcc2.id;
+            }
+
+            batchInputs.add(new ConnectApi.BatchInput(feedItemInput));
+        }
+
+        Test.startTest();
+            ConnectApi.BatchResult[] feedElement = ConnectApi.ChatterFeeds.postFeedElementBatch(null, batchInputs);
+        Test.stopTest();  
+        List<String> emailsToTest = FeedItem_TriggerHandler.testEmails.get(0);
+        List<String> emailsToTest2 = FeedItem_TriggerHandler.testEmails.get(1);
+
+        System.assert(!emailsToTest.contains('test@samp2.com'));
+        System.assert(!emailsToTest2.contains('test@samp.com'));
     }
 }
