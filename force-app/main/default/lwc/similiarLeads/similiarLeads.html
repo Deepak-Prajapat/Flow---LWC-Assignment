@@ -1,0 +1,24 @@
+<template>
+    <template if:true={isSimiliarLeads}>
+        <lightning-card  variant="Narrow"  title="Similiar Leads" >
+                <div class = "slds-var-m-around_large" style="height:300px">
+                    <lightning-datatable
+                        key-field="id"
+                        data={allSimiliarLeads}
+                        columns={columnsList}
+                        show-row-number-column="true"
+                        default-sort-direction={defaultSortDirection}
+                        sorted-direction={sortDirection}
+                        sorted-by={sortedBy}
+                        onsort={onHandleSort}
+                        hide-checkbox-column
+                    > 
+                    </lightning-datatable>
+                </div>
+        </lightning-card>
+    </template>
+
+    <template if:false={isSimiliarLeads}>
+        <center>No Similiar Leads Available In Database</center>
+    </template>
+</template>
