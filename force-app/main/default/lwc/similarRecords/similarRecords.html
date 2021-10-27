@@ -1,0 +1,28 @@
+<template>
+    
+        <lightning-card  variant="Narrow"  title={componentTitle} >
+            <template if:true={showSimilarRecords}>
+                <div class = "slds-var-m-around_large" style="height:300px">
+                    <lightning-datatable
+                        key-field="id"
+                        data={allSimiliarLeads}
+                        columns={columns}
+                        show-row-number-column="true"
+                        default-sort-direction={defaultSortDirection}
+                        sorted-direction={sortDirection}
+                        sorted-by={sortedBy}
+                        onsort={onHandleSort}
+                        hide-checkbox-column
+                        enable-infinite-loading={infiniteTable}
+                        onloadmore={loadMoreData}
+                    > 
+                    </lightning-datatable>
+                </div>
+            </template>
+
+            <template if:false={showSimilarRecords}>
+                <center>No Similar Records Found Based On Your Configurations</center>
+            </template>
+        </lightning-card>
+    
+</template>
