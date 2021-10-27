@@ -1,7 +1,6 @@
 /**
- * @description       : 
+ * @description       : Backend Functionality of Similar Records Component
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
- * @group             : 
  * @last modified on  : 27-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **/
