@@ -13,24 +13,23 @@ public with sharing class SimiliarRecordsSettingsController {
     @AuraEnabled
     Public static List<apiAndLabelWrapper> getObjects(){
         List<apiAndLabelWrapper> objects = new List<apiAndLabelWrapper>();
-        try {
-            List<Schema.SObjectType> objList = Schema.getGlobalDescribe().Values();
-            for(Schema.SObjectType obj : objList){
-                apiAndLabelWrapper objWrapper = new apiAndLabelWrapper();
-                if(obj.getDescribe().getLabel().contains('__MISSING LABEL__')) continue;
-                objWrapper.apiName = obj.getDescribe().getName();
-                objWrapper.Label = obj.getDescribe().getLabel();
-                objects.add(objWrapper);
-            }
-        } catch(Exception e) {
-            System.debug(e.getMessage());
-            System.debug(e.getStackTraceString());
+        
+        List<Schema.SObjectType> objList = Schema.getGlobalDescribe().Values();
+        for(Schema.SObjectType obj : objList){
+            apiAndLabelWrapper objWrapper = new apiAndLabelWrapper();
+            if(obj.getDescribe().getLabel().contains('__MISSING LABEL__')) continue;
+            objWrapper.apiName = obj.getDescribe().getName();
+            objWrapper.Label = obj.getDescribe().getLabel();
+            objects.add(objWrapper);
         }
+
        objects.sort();
        return objects;
     }
 
-    
+    /**
+    * It Will sort objects based on their labels instead od apiNames
+    */
     public class apiAndLabelWrapper implements Comparable {
         @AuraEnabled
         public String apiName {get;set;}
@@ -44,6 +43,7 @@ public with sharing class SimiliarRecordsSettingsController {
             return -1;        
         }
     }
+
     /**
     * @description to get fields of a particular object
     * @author Deepak Prajapati (d.prajapati@concret.io) | 29-06-2021 
@@ -54,6 +54,7 @@ public with sharing class SimiliarRecordsSettingsController {
     public static List<apiAndLabelWrapper> getFields(String objname) {
         List<apiAndLabelWrapper> fields = new List<apiAndLabelWrapper>();
         map<string,schema.sobjecttype> describe = schema.getglobaldescribe();
+
         if(describe.containskey(objname)) {
             map<string,schema.sobjectfield> fieldmap = describe.get(objname).getdescribe().fields.getmap();
             for(string fi:fieldmap.keyset()) {
@@ -115,7 +116,6 @@ public with sharing class SimiliarRecordsSettingsController {
         String selectedObject = String.valueOf(data.get('selectedObject'));
         List<Object> columns = (List<Object>) data.get('columnsList');
 
-        System.debug('in debug');
         String fieldsText = '';
         SimiliarRecordsSettings__c srSettings = new SimiliarRecordsSettings__c();
         srSettings.Name = selectedObject;
@@ -141,10 +141,8 @@ public with sharing class SimiliarRecordsSettingsController {
     **/
     @AuraEnabled
     public static Boolean deleteConfiguration(Id recordId){
-        System.debug(recordId);
         try {
             List<SimiliarRecordsSettings__c> s = [select id,Name from SimiliarRecordsSettings__c where id =:recordId];
-            System.debug(s);
             delete s;
             return true;
         } catch (Exception e) {
