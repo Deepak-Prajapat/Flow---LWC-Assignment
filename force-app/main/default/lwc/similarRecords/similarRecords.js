@@ -1,35 +1,31 @@
 /**
- * @description       : 
+ * @description       : Similar Records Component Backend
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
- * @group             : 
- * @last modified on  : 26-10-2021
+ * @last modified on  : 27-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **/
 import { LightningElement, api,wire } from 'lwc';
 import { getRecord } from 'lightning/uiRecordApi';
-import getSettings from '@salesforce/apex/similarRecordsController.getSettings';
-import getSimiliarRecords from '@salesforce/apex/similarRecordsController.getSimiliarRecords';
+import getConfiguration from '@salesforce/apex/similarRecordsController.getConfiguration';
+import getSimilarRecords from '@salesforce/apex/similarRecordsController.getSimilarRecords';
 
 
 export default class SimilarRecords extends LightningElement {
     @api objectApiName;
     @api recordId;
     
-
-
     fields = []; //with objectApiName. + field
     fieldNames = [
         'Name'
     ];
-    objectFields = [];
 
-    componentTitle;
+    objectFields = [];
+    componentTitle; 
 
     //componentTitle = 'Similar ' + this.objectApiName;
     showSimilarRecords = false;
     objectName;
     
-
     columns = [
         {
             label: 'Name', fieldName: 'linkUrl', type: 'url',
@@ -39,12 +35,12 @@ export default class SimilarRecords extends LightningElement {
 
     connectedCallback() {
         this.componentTitle = 'Similar ' + this.objectApiName
-        getSettings({ objectName: this.objectApiName })
+        getConfiguration({ objectName: this.objectApiName })
             .then(result => {
                 if (result != null) {
                     
-                    let feilds = result.Fields__c;
-                    let fieldsArray = feilds.split(",");
+                    let fields = result.Fields__c;
+                    let fieldsArray = fields.split(",");
                     fieldsArray.forEach(field => {
                         if (field != 'Name') {
                             this.fields.push(this.objectApiName + '.' + field);
@@ -65,16 +61,13 @@ export default class SimilarRecords extends LightningElement {
                         if (tempObj) {
                             this.columns = [...this.columns, tempObj];
                         }
-                        
                     })
                 }
                 this.fields.push(this.objectApiName + '.Name');
-
                 this.objectFields = this.fields;
             })
             .catch(error => {
                 console.error(error);
-                // TODO Error handling
             });
     }
 
@@ -105,11 +98,11 @@ export default class SimilarRecords extends LightningElement {
         }
     }
 
-    allSimiliarLeads = [];
+    allSimilarLeads = [];
     isRecordsAvailable = false;
     getData(jsonData) {
     
-        return getSimiliarRecords({ jsonData: JSON.stringify(jsonData) })
+        return getSimilarRecords({ jsonData: JSON.stringify(jsonData) })
             .then((result) => {
                 if (result.records.length == 0) {
                     this.infiniteTable = false;
@@ -120,16 +113,13 @@ export default class SimilarRecords extends LightningElement {
                     tempObj.linkUrl = '/' + record.Id;
 
                     if (this.recordId != record.Id) {
-                        this.allSimiliarLeads = [...this.allSimiliarLeads, tempObj];
+                        this.allSimilarLeads = [...this.allSimilarLeads, tempObj];
                     }
                 })
-
                 
-                if (this.allSimiliarLeads.length == 0) {
+                if (this.allSimilarLeads.length == 0) {
                     this.showSimilarRecords = false;    
                 } 
-                
-                
             })
             .catch((error) => {
                 this.error = error;
@@ -137,18 +127,17 @@ export default class SimilarRecords extends LightningElement {
             });
     }
 
-
     /**
-     * DATATABLE SORTING
+     * DATA TABLE SORTING
      */ 
     defaultSortDirection = 'asc';
     sortDirection = 'asc';
     sortedBy;
     onHandleSort(event) {
         const { fieldName: sortedBy, sortDirection } = event.detail;
-        const cloneData = [...this.allSimiliarLeads];
+        const cloneData = [...this.allSimilarLeads];
         cloneData.sort(this.sortBy(sortedBy, sortDirection === 'asc' ? 1 : -1));
-        this.allSimiliarLeads = cloneData;
+        this.allSimilarLeads = cloneData;
         this.sortDirection = sortDirection;
         this.sortedBy = sortedBy;
     }
@@ -164,7 +153,9 @@ export default class SimilarRecords extends LightningElement {
     }
 
 
-    /* LAZY LOADING */
+    /**
+     *  LAZY LOADING 
+     */
     maxRecord = 0;
     infiniteTable = true;
     rowLimit = 20;

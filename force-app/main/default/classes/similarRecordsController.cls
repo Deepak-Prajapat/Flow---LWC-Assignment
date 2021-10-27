@@ -2,12 +2,18 @@
  * @description       : 
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
  * @group             : 
- * @last modified on  : 26-10-2021
+ * @last modified on  : 27-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **/
 public with sharing class similarRecordsController {
+    /**
+    * @description will return available configuration in custom settings for Similar Records
+    * @author Deepak Prajapati (d.prajapati@concret.io) | 27-10-2021 
+    * @param String objectName 
+    * @return SimiliarRecordsSettings__c 
+    **/
     @AuraEnabled
-    public static SimiliarRecordsSettings__c getSettings(String objectName){
+    public static SimiliarRecordsSettings__c getConfiguration(String objectName){
         try {
             return [SELECT Id,Name,Fields__c
                     FROM SimiliarRecordsSettings__c
@@ -18,8 +24,14 @@ public with sharing class similarRecordsController {
         }
     }
 
+    /**
+    * @description get similar recordes based on configuration
+    * @author Deepak Prajapati (d.prajapati@concret.io) | 27-10-2021 
+    * @param String jsonData 
+    * @return SimilarRecordsWrapper 
+    **/
     @AuraEnabled
-    public static SimilarRecordsWrapper getSimiliarRecords(String jsonData) {
+    public static SimilarRecordsWrapper getSimilarRecords(String jsonData) {
         Map<String, Object> data = (Map<String, Object>) JSON.deserializeUntyped(jsonData);
 
         String objectApiName = String.valueOf(data.get('objectApiName'));
@@ -42,12 +54,10 @@ public with sharing class similarRecordsController {
 
         String query = 'SELECT ' + queryFields.removeEnd(',') + ' FROM ' + objectApiName + whereClause.substring(0, whereClause.length() - 3) + ' Limit ' + data.get('rowLimit') + ' OFFSET ' + data.get('offSet');
 
-        System.debug('query -> ' + query);
         SimilarRecordsWrapper srWrapper = new similarRecordsWrapper();
 
         try {
             srWrapper.records = Database.query(query);
-            System.debug(srWrapper.records.size() + '::');
 
             if (srWrapper.records.size() > 0) {
                 srWrapper.isRecordsAvailable = true;

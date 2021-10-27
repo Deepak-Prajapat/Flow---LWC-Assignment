@@ -1,7 +1,7 @@
 /**
  * @description       : SimilarRecordsSetting Component Backend Class
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
- * @last modified on  : 26-10-2021
+ * @last modified on  : 27-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **/
 public with sharing class SimiliarRecordsSettingsController {
@@ -11,9 +11,7 @@ public with sharing class SimiliarRecordsSettingsController {
     * @return List<apiAndLabelWrapper> (List Of Wrapper, (Wrapper includes label and api name of sobject))
     **/
     @AuraEnabled
-    Public static List<apiAndLabelWrapper> getObjList(){
-
-        System.debug('Log Generated');
+    Public static List<apiAndLabelWrapper> getObjects(){
         List<apiAndLabelWrapper> objects = new List<apiAndLabelWrapper>();
         try {
             List<Schema.SObjectType> objList = Schema.getGlobalDescribe().Values();
@@ -76,7 +74,7 @@ public with sharing class SimiliarRecordsSettingsController {
     * @return AvailableSettingsWrapper
     **/
     @AuraEnabled
-    public static AvailableSettingsWrapper getAvailableSettings(){
+    public static AvailableSettingsWrapper getAvailableConfiguration(){
         AvailableSettingsWrapper asWrapper = new AvailableSettingsWrapper();
         try {
             List<SimiliarRecordsSettings__c> similarSettings = [SELECT  Id, 
@@ -102,7 +100,6 @@ public with sharing class SimiliarRecordsSettingsController {
         public List<SimiliarRecordsSettings__c> similarSettings = new List<SimiliarRecordsSettings__c>();
         @AuraEnabled
         public Boolean isAvailable = false;
-
     }
 
     /**
@@ -112,7 +109,7 @@ public with sharing class SimiliarRecordsSettingsController {
     * @return Boolean 
     **/
     @AuraEnabled
-    public static Boolean insertSettings(String jsonPerameters){
+    public static Boolean insertConfiguration(String jsonPerameters){
 
         Map<String, Object> data = (Map<String, Object>) JSON.deserializeUntyped(jsonPerameters);
         String selectedObject = String.valueOf(data.get('selectedObject'));
@@ -143,7 +140,7 @@ public with sharing class SimiliarRecordsSettingsController {
     * @return Boolean 
     **/
     @AuraEnabled
-    public static Boolean deleteSettings(Id recordId){
+    public static Boolean deleteConfiguration(Id recordId){
         System.debug(recordId);
         try {
             List<SimiliarRecordsSettings__c> s = [select id,Name from SimiliarRecordsSettings__c where id =:recordId];

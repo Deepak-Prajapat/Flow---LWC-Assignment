@@ -1,7 +1,7 @@
 <template>
     <lightning-card class="slds-p-around_large">
 
-        <!-- AVAILABLE SETTINGS -->
+        <!-- AVAILABLE CONFIGURATION -->
         <template if:true={alreadyAvailable}>
             <lightning-card class="slds-p-around_large">
                 <template for:each={settings.similarSettings} for:item="setting">
@@ -20,9 +20,11 @@
                 </template>
             </lightning-card>
         </template>
+
+        <!-- NEW CONFIGURATION BUTTON -->
         <lightning-button style="margin-left: 20px;" variant="brand" label="New Configuration"  onclick={handleAdd}></lightning-button>
     
-
+        <!-- MODAL FOR OBJECT AND FIELDS SELECTION -->
         <template if:true={displayNew}>
             <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container" style="height:200px !important ">
@@ -63,6 +65,7 @@
 
                 </div>
 
+                <!-- SAVE AND CANCEL AT BOTTOM -->
                 <footer class="slds-modal__footer">
                     <lightning-button style="padding-left: 30px;" label="Cancel"  onclick={handleCancel}></lightning-button>
                     <template if:true={saveActivated}>

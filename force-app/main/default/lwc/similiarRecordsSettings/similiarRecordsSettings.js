@@ -2,16 +2,16 @@
  * @description       : Similar Records Component
  * @author            : Deepak Prajapati (d.prajapati@concret.io)
  * @group             : 
- * @last modified on  : 26-10-2021
+ * @last modified on  : 27-10-2021
  * @last modified by  : Deepak Prajapati (d.prajapati@concret.io)
 **/
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import getObjList from '@salesforce/apex/SimiliarRecordsSettingsController.getObjList';
+import getObjects from '@salesforce/apex/SimiliarRecordsSettingsController.getObjects';
 import getfields from '@salesforce/apex/SimiliarRecordsSettingsController.getFields';
-import getAvailableSettings from '@salesforce/apex/SimiliarRecordsSettingsController.getAvailableSettings';
-import insertSettings from '@salesforce/apex/SimiliarRecordsSettingsController.insertSettings';
-import deleteSettings from '@salesforce/apex/SimiliarRecordsSettingsController.deleteSettings';
+import getAvailableConfiguration from '@salesforce/apex/SimiliarRecordsSettingsController.getAvailableConfiguration';
+import insertConfiguration from '@salesforce/apex/SimiliarRecordsSettingsController.insertConfiguration';
+import deleteConfiguration from '@salesforce/apex/SimiliarRecordsSettingsController.deleteConfiguration';
 
 export default class SimiliarRecordsSettings extends LightningElement {
     @track selectedObject;
@@ -34,7 +34,7 @@ export default class SimiliarRecordsSettings extends LightningElement {
     allObjects = []
     connectedCallback() {
         this.avalSetting();
-        this.getObjects();
+        this.getAllObjects();
     }
 
 
@@ -43,7 +43,7 @@ export default class SimiliarRecordsSettings extends LightningElement {
      */
     avalSetting() {
         this.avalConfigurationLabels = []
-        getAvailableSettings()
+        getAvailableConfiguration()
             .then(result => {
                 if (result.isAvailable) {
                     console.log('result --> ', result)
@@ -54,8 +54,6 @@ export default class SimiliarRecordsSettings extends LightningElement {
                         this.avalConfigurationLabels.push(ele.Name);
                     })
                 }
-                console.log(...this.avalConfigurationLabels);
-                console.log(this.avalConfigurationLabels.includes('Account'));
             })
             .catch(error => {
                 // TODO Error handling
@@ -66,10 +64,10 @@ export default class SimiliarRecordsSettings extends LightningElement {
     /**
      * Get Objects
      */
-    getObjects() {
+    getAllObjects() {
         this.items = [];
         this.allObjects = [];
-        getObjList() 
+        getObjects() 
             .then((result) => {
                 result.forEach(element => {
                     if (!this.avalConfigurationLabels.includes(element.apiName)) {
@@ -98,6 +96,9 @@ export default class SimiliarRecordsSettings extends LightningElement {
     @track values = [];
     CheckAllFields = false;
 
+    /**
+     * Backend after object selected by users
+     */
     handleObjectChange(event) {
         this.selectedFields = [];
         this.values = [];
@@ -142,7 +143,6 @@ export default class SimiliarRecordsSettings extends LightningElement {
      * Backend after click on save settings
      * */
     saveActivated = false;
-
     handleSaveSettings() {
         let fields = [];
         this.columns.forEach(column => {
@@ -154,10 +154,10 @@ export default class SimiliarRecordsSettings extends LightningElement {
             columns: fields
         }
 
-        insertSettings({jsonPerameters: JSON.stringify(jsonPerameters) })
+        insertConfiguration({jsonPerameters: JSON.stringify(jsonPerameters) })
             .then(result => {
                 if (result) {
-                    this.newSettings = false;
+                    this.newConfiguration = false;
                     const evt = new ShowToastEvent({
                         title: 'Inserted',
                         message: 'Your Setings Successfully Inserted',
@@ -169,17 +169,15 @@ export default class SimiliarRecordsSettings extends LightningElement {
                     this.objectSelected = false;
                 }
                 this.avalSetting();
-                this.getObjects();
+                this.getAllObjects();
             })
             .catch(error => {
                 console.error(error);
-                // TODO Error handling
             });
 
     }
 
-    newSettings = false;
-
+    newConfiguration = false;
     handleClose() {
         this.resetData();
     }
@@ -188,7 +186,7 @@ export default class SimiliarRecordsSettings extends LightningElement {
     }
 
     resetData() {
-        this.newSettings = false;
+        this.newConfiguration = false;
         this.values = [];
         this.editMode = false;
         this.selectedObject = 'NULL';
@@ -196,13 +194,13 @@ export default class SimiliarRecordsSettings extends LightningElement {
     }
 
     get displayNew() {
-        return this.newSettings;
+        return this.newConfiguration;
     }
 
     handleAdd() {
         this.selectedObject = 'NULL';
         this.headerText = 'Add New Configuration';
-        this.newSettings = true;
+        this.newConfiguration = true;
     }
 
     headerText = 'Add New Filter';
@@ -214,8 +212,7 @@ export default class SimiliarRecordsSettings extends LightningElement {
     }
 
     handleDelete(event) {
-
-        deleteSettings({recordId:  event.target.value})
+        deleteConfiguration({recordId:  event.target.value})
             .then(result => {
                 if (result == true) {
                     const evt = new ShowToastEvent({
@@ -226,7 +223,7 @@ export default class SimiliarRecordsSettings extends LightningElement {
                     this.dispatchEvent(evt);
                 }
                 this.avalSetting();
-                this.getObjects();
+                this.getAllObjects();
             })
             .catch(error => {
                 console.error(error);
@@ -244,7 +241,7 @@ export default class SimiliarRecordsSettings extends LightningElement {
     }
     
     handleEdit(event) {
-        this.newSettings = false;
+        this.newConfiguration = false;
         let obj = Object.values(this.availableSettings.similarSettings).filter(obj => obj.Id == event.target.value);
        this.selectedObject = obj[0].Name;
     
@@ -260,7 +257,7 @@ export default class SimiliarRecordsSettings extends LightningElement {
         }
 
         this.editMode = true;
-        this.newSettings = true;
+        this.newConfiguration = true;
         this.handleObjectChange();
     }
 }
