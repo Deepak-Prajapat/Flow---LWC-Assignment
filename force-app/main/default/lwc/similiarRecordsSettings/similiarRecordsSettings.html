@@ -1,0 +1,82 @@
+<template>
+    <lightning-card class="slds-p-around_large">
+
+        <!-- AVAILABLE CONFIGURATION -->
+        <template if:true={alreadyAvailable}>
+            <lightning-card class="slds-p-around_large">
+                <template for:each={settings.similarSettings} for:item="setting">
+                    <div  class="slds-grid slds-gutters" style="padding-left: 50px;height:34px" key={setting.Id}>
+                        <div class="slds-col slds-size_1-of-4" style="width: 250px;">
+                            <span style="font-size: 14px;" ><b>{setting.Name}</b></span>
+                        </div>
+                        <div style="width: 549px;" class="slds-col slds-size_2-of-3">
+                            <span style="font-size: 14px;">{setting.Fields__c}</span>
+                        </div>
+                        <div  class="slds-col slds-size_3-of-3">
+                            <span> <lightning-button value={setting.Id}  style="margin-right: 7px" variant="brand" label="EDIT" onclick={handleEdit} class="slds-m-left_x-small"></lightning-button> <lightning-button value={setting.Id} variant="destructive" icon-name="utility:delete" onclick={handleDeleteClick}></lightning-button> </span>
+                        </div>
+                        <hr>
+                    </div>
+                </template>
+            </lightning-card>
+        </template>
+
+        <!-- NEW CONFIGURATION BUTTON -->
+        <lightning-button style="margin-left: 20px;" variant="brand" label="New Configuration"  onclick={handleAdd}></lightning-button>
+    
+        <!-- MODAL FOR OBJECT AND FIELDS SELECTION -->
+        <template if:true={displayNew}>
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container" style="height:200px !important ">
+                    
+                <header class="slds-modal__header">
+                    <b style="font-size:19px">{headerText}</b>
+                    <span class="slds-modal__close" style="background:white;border:none">
+                        <lightning-button-icon  onclick={handleClose} icon-name="utility:close" alternative-text="close"></lightning-button-icon>
+                    </span>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" style="height:430px">
+                    
+                    <div class="slds-var-m-around_large" style="width: 90%;text-align:left">
+                        <lightning-combobox
+                            name="Objects"
+                            label="Select Object"
+                            value={selectedObj}
+                            placeholder="Ex: Lead"
+                            options={objects}
+                            
+                            onchange={handleObjectChange} >
+                        </lightning-combobox>
+                    </div>
+
+                    <template if:true={objectSelected}>
+                        <div class="slds-var-m-around_large">
+                                <lightning-dual-listbox name="languages"
+                                    label="Select Fields"
+                                    source-label="Available"
+                                    selected-label="Selected"
+                                    field-level-help="This is a dual listbox"
+                                    options = {allFields}
+                                    value = {selectedFieldValues}
+                                    onchange={onSelectField}>
+                                </lightning-dual-listbox>
+                        </div>
+                    </template>
+
+                </div>
+
+                <!-- SAVE AND CANCEL AT BOTTOM -->
+                <footer class="slds-modal__footer">
+                    <lightning-button style="padding-left: 30px;" label="Cancel"  onclick={handleCancel}></lightning-button>
+                    <template if:true={saveActivated}>
+                        <lightning-button style="padding-left: 30px;" variant="brand" label="Save Settings"  onclick={handleSaveSettings}></lightning-button>
+                    </template>
+                </footer>
+                    </div>
+                </section>
+                <div class="slds-backdrop slds-backdrop_open"></div>
+            
+        </template>
+
+    </lightning-card>
+</template>
